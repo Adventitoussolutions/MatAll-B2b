@@ -53,12 +53,19 @@ export default function OtpScreen({ route }: any) {
         otp: fullOtp
       });
       
-      const { token } = response.data;
+      const { token, user } = response.data;
       if (token) {
         await SecureStore.setItemAsync('token', token);
       }
       
-      navigation.replace('Profile');
+      const step = user?.b2bContractor?.onboardingStep || 0;
+      if (step === 0) {
+        navigation.replace('VerifyAccount');
+      } else if (step === 1) {
+        navigation.replace('CompleteProfile');
+      } else {
+        navigation.replace('MainTabs', { screen: 'Home' });
+      }
     } catch (err: any) {
       Alert.alert('Verification Failed', err.response?.data?.message || err.message || 'Invalid OTP');
     } finally {
@@ -165,7 +172,7 @@ export default function OtpScreen({ route }: any) {
 
         <TouchableOpacity
           style={styles.guestButton}
-          onPress={() => navigation.replace('Profile')}
+          onPress={() => navigation.replace('MainTabs', { screen: 'Profile' })}
         >
           <Text style={styles.guestText}>Continue as guest</Text>
         </TouchableOpacity>

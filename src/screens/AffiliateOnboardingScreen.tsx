@@ -15,6 +15,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
+import { useAuth } from '../context/AuthContext';
 
 // Hardcoded colors for now to match the B2B app design
 const Colors = {
@@ -29,6 +30,7 @@ const Colors = {
 
 export default function AffiliateOnboardingScreen() {
   const navigation = useNavigation<any>();
+  const { fetchProfile } = useAuth();
   
   // Steps: 'FORM_STEP' | 'SUBMITTING'
   const [step, setStep] = useState<'FORM_STEP' | 'SUBMITTING'>('FORM_STEP');
@@ -56,6 +58,8 @@ export default function AffiliateOnboardingScreen() {
         dob,
         anniversaryDate: anniversaryDate || undefined
       });
+
+      await fetchProfile();
 
       Alert.alert('Success', 'You are now an active affiliate partner.');
       navigation.goBack(); // Or replace with 'AffiliateWallet' once that screen is built

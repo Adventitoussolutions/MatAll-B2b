@@ -1,14 +1,91 @@
-import { Feather, Ionicons } from '@expo/vector-icons'; // Assuming you use expo vector icons
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
-import { Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Feather, Ionicons } from '@expo/vector-icons';
+import { Picker } from '@react-native-picker/picker';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as ImagePicker from 'expo-image-picker';
+import api from '../services/api';
 
 export default function CompleteProfileScreen() {
     const navigation = useNavigation<any>();
+    const route = useRoute<any>();
+
     const [fullName, setFullName] = useState('');
     const [trade, setTrade] = useState('');
-    const [location, setLocation] = useState('');
+    const [profileImageUri, setProfileImageUri] = useState<string | null>(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const [availableTrades, setAvailableTrades] = useState<any[]>([]);
+    const [isTradeModalVisible, setIsTradeModalVisible] = useState(false);
+
+    useEffect(() => {
+        const fetchTrades = async () => {
+            try {
+                const response = await api.get('/api/b2b/onboarding/trades');
+                setAvailableTrades(response.data || []);
+            } catch (err) {
+                console.error('Failed to fetch trades', err);
+            }
+        };
+        fetchTrades();
+    }, []);
+
+    const pickImage = async () => {
+        let result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.5,
+        });
+
+        if (!result.canceled) {
+            setProfileImageUri(result.assets[0].uri);
+        }
+    };
+
+    const handleSubmit = async () => {
+        if (!fullName.trim() || !trade.trim()) {
+            Alert.alert('Missing Fields', 'Please enter your full name and trade.');
+            return;
+        }
+
+        setIsLoading(true);
+        try {
+            const formData = new FormData();
+            formData.append('name', fullName.trim());
+            formData.append('trade', trade.trim());
+
+            if (profileImageUri) {
+                const filename = profileImageUri.split('/').pop() || 'profile.jpg';
+                const match = /\.(\w+)$/.exec(filename);
+                const type = match ? `image/${match[1]}` : `image`;
+
+                formData.append('profilePicture', {
+                    uri: profileImageUri,
+                    name: filename,
+                    type
+                } as any);
+            }
+
+            await api.post('/api/b2b/onboarding/step2', formData);
+
+            // If onboarding is complete, usually navigate to the Home screen
+            Alert.alert('Success', 'Profile completed successfully!', [
+                {
+                    text: 'OK',
+                    onPress: () => navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'MainTabs' }],
+                    })
+                }
+            ]);
+        } catch (error: any) {
+            Alert.alert('Error', error.response?.data?.message || error.message || 'Failed to complete profile.');
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -24,9 +101,16 @@ export default function CompleteProfileScreen() {
                 {/* Profile Image Placeholder */}
                 <View style={styles.avatarSection}>
                     <View style={styles.avatarContainer}>
-                        <Feather name="user" size={40} color="#999" />
+                        {profileImageUri ? (
+                            <Image 
+                                source={{ uri: profileImageUri }} 
+                                style={{ width: 90, height: 90, borderRadius: 45 }} 
+                            />
+                        ) : (
+                            <Feather name="user" size={40} color="#999" />
+                        )}
                     </View>
-                    <TouchableOpacity style={styles.cameraButton}>
+                    <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
                         <Ionicons name="camera" size={16} color="#FFE600" />
                     </TouchableOpacity>
                 </View>
@@ -40,39 +124,38 @@ export default function CompleteProfileScreen() {
                     onChangeText={setFullName}
                 />
 
-                <Text style={styles.label}>Trade</Text>
-                <View style={styles.inputWithIconContainer}>
-                    <TextInput
-                        style={styles.inputWithIcon}
-                        placeholder="Electrician"
-                        value={trade}
-                        onChangeText={setTrade}
-                    />
-                    <Feather name="chevron-down" size={20} color="#999" style={{ paddingRight: 15 }} />
+                <Text style={styles.label}>Your Trade (e.g., Plumber, Carpenter)</Text>
+                <View style={[styles.inputWithIconContainer, { backgroundColor: '#F9FAFB', overflow: 'hidden' }]}>
+                    <Picker
+                        selectedValue={trade}
+                        onValueChange={(itemValue) => setTrade(itemValue)}
+                        style={{ flex: 1, backgroundColor: 'transparent' }}
+                        dropdownIconColor="#999"
+                    >
+                        <Picker.Item label="Tap to select your trade" value="" color="#999" />
+                        {availableTrades.map((t) => (
+                            <Picker.Item key={t._id} label={t.name} value={t.name} />
+                        ))}
+                    </Picker>
                 </View>
-
-                <Text style={styles.label}>Site / business location</Text>
-                <View style={styles.inputWithIconContainer}>
-                    <TextInput
-                        style={styles.inputWithIcon}
-                        placeholder="Sector 49, Gurugram"
-                        value={location}
-                        onChangeText={setLocation}
-                    />
-                    <Ionicons name="location-outline" size={20} color="#999" style={{ paddingRight: 15 }} />
-                </View>
-
-                <TouchableOpacity>
-                    <Text style={styles.currentLocationText}>Use current location</Text>
-                </TouchableOpacity>
             </ScrollView>
 
             {/* Footer Button */}
             <View style={styles.footer}>
-                <TouchableOpacity style={styles.continueButton} onPress={() => {/* Handle Continue */ }}>
-                    <Text style={styles.continueText}>Continue</Text>
+                <TouchableOpacity
+                    style={[styles.continueButton, (!fullName || !trade) && { opacity: 0.7 }]}
+                    onPress={handleSubmit}
+                    disabled={isLoading || !fullName || !trade}
+                >
+                    {isLoading ? (
+                        <ActivityIndicator color="#000" />
+                    ) : (
+                        <Text style={styles.continueText}>Continue</Text>
+                    )}
                 </TouchableOpacity>
             </View>
+
+            {/* Trade Modal removed since we use native Picker */}
         </SafeAreaView>
     );
 }

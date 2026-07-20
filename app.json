@@ -8,7 +8,10 @@
     "scheme": "matallb2b",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "config": {
+        "googleMapsApiKey": "AIzaSyDmDT2lO73oKrO3gwJNvFgiJ55vCmrDaIU"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,12 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anishaaaaaaa.MatAllB2b"
+      "package": "com.anishaaaaaaa.MatAllB2b",
+      "config": {
+        "googleMaps": {
+          "apiKey": "AIzaSyDmDT2lO73oKrO3gwJNvFgiJ55vCmrDaIU"
+        }
+      }
     },
     "web": {
       "output": "single",
@@ -37,7 +45,7 @@
     ],
     "experiments": {
 
-      "reactCompiler": true
+      "reactCompiler": false
     }
   }
 }

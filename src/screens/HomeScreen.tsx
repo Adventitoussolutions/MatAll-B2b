@@ -20,7 +20,7 @@ export default function HomeScreen() {
         {/* Header Section */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greetingText}>Hi, {user?.fullName}</Text>
+            <Text style={styles.greetingText}>{user?.fullName}</Text>
             {/* <Text style={styles.subtitleText}>
               <Text style={{ color: Colors.primary }}>{user?.role}</Text>
             </Text> */}

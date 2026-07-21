@@ -25,8 +25,10 @@ interface AuthContextType {
     user: UserProfile | null;
     isLoading: boolean;
     token: string | null;
-    fetchProfile: () => Promise<void>;
+    fetchProfile: (currentToken?: string) => Promise<void>;
     logout: () => Promise<void>;
+    setUser: (user: UserProfile | null) => void;
+    setToken: (token: string | null) => void;
 }
 
 //createContext creates an object containing provider and consumer.
@@ -87,7 +89,7 @@ export const AuthProvider = ({ children }: any) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, token, fetchProfile, logout }}>
+        <AuthContext.Provider value={{ user, isLoading, token, fetchProfile, logout, setUser, setToken }}>
             {children}
         </AuthContext.Provider>
     );

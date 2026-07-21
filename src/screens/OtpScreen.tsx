@@ -14,9 +14,11 @@ import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
 import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
+import { useAuth } from '../context/AuthContext';
 
 export default function OtpScreen({ route }: any) {
   const navigation: any = useNavigation();
+  const { fetchProfile, setUser, setToken } = useAuth();
   const { phoneNumber } = route.params || {};
   const phoneString = Array.isArray(phoneNumber) ? phoneNumber[0] : (phoneNumber || 'XXXXXXXX7701');
   
@@ -56,6 +58,8 @@ export default function OtpScreen({ route }: any) {
       const { token, user } = response.data;
       if (token) {
         await SecureStore.setItemAsync('token', token);
+        setToken(token);
+        setUser(user);
       }
       
       const step = user?.b2bContractor?.onboardingStep || 0;
@@ -170,12 +174,6 @@ export default function OtpScreen({ route }: any) {
           </Text>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.guestButton}
-          onPress={() => navigation.replace('MainTabs', { screen: 'Profile' })}
-        >
-          <Text style={styles.guestText}>Continue as guest</Text>
-        </TouchableOpacity>
 
         <View style={styles.footer}>
           <Text style={styles.footerText}>

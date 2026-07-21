@@ -1,10 +1,10 @@
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View, Image } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
+import { useEffect, useState } from 'react';
+import { ActivityIndicator, Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import api from '../services/api';
 
 export default function CompleteProfileScreen() {
@@ -102,9 +102,9 @@ export default function CompleteProfileScreen() {
                 <View style={styles.avatarSection}>
                     <View style={styles.avatarContainer}>
                         {profileImageUri ? (
-                            <Image 
-                                source={{ uri: profileImageUri }} 
-                                style={{ width: 90, height: 90, borderRadius: 45 }} 
+                            <Image
+                                source={{ uri: profileImageUri }}
+                                style={{ width: 90, height: 90, borderRadius: 45 }}
                             />
                         ) : (
                             <Feather name="user" size={40} color="#999" />

@@ -9,8 +9,9 @@
     "userInterfaceStyle": "automatic",
     "ios": {
       "icon": "./assets/expo.icon",
-      "config": {
-        "googleMapsApiKey": "AIzaSyDmDT2lO73oKrO3gwJNvFgiJ55vCmrDaIU"
+      "bundleIdentifier": "com.adventitoussolutions.matallb2b",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
@@ -21,19 +22,13 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.anishaaaaaaa.MatAllB2b",
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyDmDT2lO73oKrO3gwJNvFgiJ55vCmrDaIU"
-        }
-      }
+      "package": "com.adventitoussolutions.matallb2b"
     },
     "web": {
       "output": "single",
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-
       [
         "expo-splash-screen",
         {
@@ -41,11 +36,22 @@
           "image": "./assets/images/splash-icon.png",
           "imageWidth": 76
         }
+      ],
+      [
+        "react-native-maps",
+        {
+          "iosGoogleMapsApiKey": "AIzaSyDmDT2lO73oKrO3gwJNvFgiJ55vCmrDaIU",
+          "androidGoogleMapsApiKey": "AIzaSyDmDT2lO73oKrO3gwJNvFgiJ55vCmrDaIU"
+        }
       ]
     ],
     "experiments": {
-
       "reactCompiler": false
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f271edd2-098d-4d70-b28d-2d328ca0ede7"
+      }
     }
   }
 }

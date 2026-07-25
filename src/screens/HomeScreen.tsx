@@ -1,7 +1,8 @@
 import { useNavigation } from '@react-navigation/native';
 import { useEffect } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
 
@@ -21,24 +22,39 @@ export default function HomeScreen() {
         <View style={styles.header}>
           <View>
             <Text style={styles.greetingText}>{user?.fullName}</Text>
-            {/* <Text style={styles.subtitleText}>
-              <Text style={{ color: Colors.primary }}>{user?.role}</Text>
-            </Text> */}
           </View>
-          <View style={styles.profileCircle} />
+          <View>
+            <TouchableOpacity 
+              style={[styles.profileCircle, { justifyContent: 'center', alignItems: 'center', overflow: 'hidden' }]}
+              onPress={() => navigation.navigate('Profile')}
+            >
+              {user?.profileImage ? (
+                <Image source={{ uri: user.profileImage }} style={{ width: '100%', height: '100%' }} />
+              ) : (
+                <Feather name="user" size={24} color={Colors.text.primary} />
+              )}
+            </TouchableOpacity>
+            {user?.isAffiliate && (
+              <View style={{ position: 'absolute', top: -5, right: -5, backgroundColor: Colors.white, borderRadius: 10, padding: 2, elevation: 2, zIndex: 10 }}>
+                <MaterialCommunityIcons name="crown" size={14} color="#FFE100" />
+              </View>
+            )}
+          </View>
         </View>
 
         {/* Stats Row */}
-        {/* <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Orders this month</Text>
-            <Text style={styles.statValue}>43</Text>
+        {user?.isAffiliate && (
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statLabel}>Orders Referred</Text>
+              <Text style={styles.statValue}>{user?.totalSuccessfulOrders || 0}</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statLabel}>Wallet balance</Text>
+              <Text style={styles.statValue}>₹{Number(user?.walletBalance || 0).toFixed(2)}</Text>
+            </View>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>Wallet balance</Text>
-            <Text style={styles.statValue}>₹1,000</Text>
-          </View>
-        </View> */}
+        )}
 
         {/* Community Partner Banner */}
         <View style={styles.partnerBanner}>

@@ -11,6 +11,7 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
@@ -41,6 +42,8 @@ export default function AffiliateOnboardingScreen() {
   const [home, setHome] = useState('');
   const [dob, setDob] = useState('');
   const [anniversaryDate, setAnniversaryDate] = useState('');
+  const [showDobPicker, setShowDobPicker] = useState(false);
+  const [showAnnivPicker, setShowAnnivPicker] = useState(false);
 
   const handleRegisterAffiliate = async () => {
     if (!name || !city || !home || !dob) {
@@ -87,10 +90,7 @@ export default function AffiliateOnboardingScreen() {
         <View style={{ width: 40 }} />
       </View>
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1 }}
-      >
+      <View style={{ flex: 1 }}>
         {step === 'FORM_STEP' && (
           <ScrollView 
             contentContainerStyle={styles.scrollContent} 
@@ -134,22 +134,62 @@ export default function AffiliateOnboardingScreen() {
               />
 
               <Text style={styles.fieldLabel}>Date of Birth *</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={Colors.text.muted}
-                value={dob}
-                onChangeText={setDob}
-              />
+              <TouchableOpacity onPress={() => setShowDobPicker(true)}>
+                <View pointerEvents="none">
+                  <TextInput
+                    style={styles.input}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor={Colors.text.muted}
+                    value={dob}
+                    editable={false}
+                  />
+                </View>
+              </TouchableOpacity>
+              {showDobPicker && (
+                <DateTimePicker
+                  value={dob ? new Date(dob) : new Date(2000, 0, 1)}
+                  mode="date"
+                  display="default"
+                  maximumDate={new Date()}
+                  onChange={(event, selectedDate) => {
+                    setShowDobPicker(Platform.OS === 'ios');
+                    if (selectedDate && event.type === 'set') {
+                      setDob(selectedDate.toISOString().split('T')[0]);
+                    } else if (event.type === 'dismissed') {
+                      setShowDobPicker(false);
+                    }
+                  }}
+                />
+              )}
 
               <Text style={styles.fieldLabel}>Anniversary Date (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="YYYY-MM-DD"
-                placeholderTextColor={Colors.text.muted}
-                value={anniversaryDate}
-                onChangeText={setAnniversaryDate}
-              />
+              <TouchableOpacity onPress={() => setShowAnnivPicker(true)}>
+                <View pointerEvents="none">
+                  <TextInput
+                    style={styles.input}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor={Colors.text.muted}
+                    value={anniversaryDate}
+                    editable={false}
+                  />
+                </View>
+              </TouchableOpacity>
+              {showAnnivPicker && (
+                <DateTimePicker
+                  value={anniversaryDate ? new Date(anniversaryDate) : new Date()}
+                  mode="date"
+                  display="default"
+                  maximumDate={new Date()}
+                  onChange={(event, selectedDate) => {
+                    setShowAnnivPicker(Platform.OS === 'ios');
+                    if (selectedDate && event.type === 'set') {
+                      setAnniversaryDate(selectedDate.toISOString().split('T')[0]);
+                    } else if (event.type === 'dismissed') {
+                      setShowAnnivPicker(false);
+                    }
+                  }}
+                />
+              )}
 
               <TouchableOpacity style={styles.primaryBtn} onPress={handleRegisterAffiliate}>
                 <Text style={styles.primaryBtnText}>Submit Onboarding</Text>
@@ -165,7 +205,7 @@ export default function AffiliateOnboardingScreen() {
             <Text style={styles.verifyingSubText}>Creating your unique partner code.</Text>
           </View>
         )}
-      </KeyboardAvoidingView>
+      </View>
     </SafeAreaView>
   );
 }

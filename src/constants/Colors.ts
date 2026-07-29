@@ -1,5 +1,5 @@
 export const Colors = {
-  primary: '#FFD700', // Yellow from Login screen
+  primary: '#FFEA00', // Yellow from MatAll StudiOS logo
   black: '#000000',
   white: '#ffffff',
   background: {

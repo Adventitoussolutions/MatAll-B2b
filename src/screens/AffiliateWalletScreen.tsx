@@ -1,15 +1,15 @@
-import React, { useState, useEffect } from 'react';
+import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { useEffect, useState } from 'react';
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Share,
+  ActivityIndicator,
   ScrollView,
-  ActivityIndicator
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { Colors } from '../constants/Colors';
 import { useAuth } from '../context/AuthContext';
 import api from '../services/api';
@@ -87,7 +87,7 @@ export default function AffiliateWalletScreen({ navigation }: any) {
   const handleShareAffiliate = async () => {
     try {
       await Share.share({
-        message: `Join MatAll using my partner code ${refCode}! Order construction and home repair supplies now: ${branchLink}`,
+        message: `Join MatAll StudiOS using my partner code ${refCode}! Order construction and home repair supplies now: ${branchLink}`,
         url: branchLink
       });
     } catch (error: any) {
@@ -229,7 +229,7 @@ export default function AffiliateWalletScreen({ navigation }: any) {
                     const isCredit = entry.pointsEarned > 0;
                     const description = (entry.description || '')
                       .replace(/\s*\(Order\s+#[a-f0-9]+(?:\s+Cancelled)?\)/gi, '')
-                      .replace(/\s*\(Checkout\s+on\s+Order\s+#[a-f0-9]+\)/gi, '') 
+                      .replace(/\s*\(Checkout\s+on\s+Order\s+#[a-f0-9]+\)/gi, '')
                       || (isCredit ? 'Points Earned' : 'Points Deducted');
 
                     return (
@@ -266,7 +266,7 @@ export default function AffiliateWalletScreen({ navigation }: any) {
                   {/* Pagination */}
                   {ledgerTotalPages > 1 && (
                     <View style={styles.paginationRow}>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[styles.pageBtn, ledgerPage === 1 && styles.pageBtnDisabled]}
                         onPress={() => setLedgerPage(prev => Math.max(prev - 1, 1))}
                         disabled={ledgerPage === 1}
@@ -274,7 +274,7 @@ export default function AffiliateWalletScreen({ navigation }: any) {
                         <Ionicons name="chevron-back" size={16} color={ledgerPage === 1 ? '#CBD5E1' : '#000'} />
                       </TouchableOpacity>
                       <Text style={styles.pageInfo}>Page {ledgerPage} of {ledgerTotalPages}</Text>
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={[styles.pageBtn, ledgerPage === ledgerTotalPages && styles.pageBtnDisabled]}
                         onPress={() => setLedgerPage(prev => Math.min(prev + 1, ledgerTotalPages))}
                         disabled={ledgerPage === ledgerTotalPages}
@@ -408,5 +408,5 @@ const styles = StyleSheet.create({
 
   footerCodeBox: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#F7FAFC', borderStyle: 'dashed', borderWidth: 1.5, borderColor: Colors.border.medium, padding: 12, borderRadius: 12, marginTop: 8 },
   footerCodeLabel: { fontSize: 12, fontWeight: '700', color: Colors.text.secondary },
-  footerCodeVal: { fontSize: 14, fontWeight: '900', color: Colors.secondary }
+  footerCodeVal: { fontSize: 14, fontWeight: '900', color: Colors.primary }
 });

@@ -1,14 +1,15 @@
 {
   "expo": {
     "name": "MatAll StudiOS",
-    "slug": "MatAll-StudiOS",
+    "slug": "MatAll-B2b",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/logo.jpeg",
+    "icon": "./assets/images/logo.png",
     "scheme": "matallstudios",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/images/logo.jpeg",
+      "buildNumber": "3",
+      "icon": "./assets/images/logo.png",
       "bundleIdentifier": "com.adventitoussolutions.matallb2b",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -17,7 +18,7 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#6BBBAE",
-        "foregroundImage": "./assets/images/logo.jpeg",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundImage": "./assets/images/android-icon-background.png",
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
@@ -26,14 +27,14 @@
     },
     "web": {
       "output": "single",
-      "favicon": "./assets/images/logo.jpeg"
+      "favicon": "./assets/images/logo.png"
     },
     "plugins": [
       [
         "expo-splash-screen",
         {
           "backgroundColor": "#6BBBAE",
-          "image": "./assets/images/logo.jpeg",
+          "image": "./assets/images/logo.png",
           "imageWidth": 76
         }
       ],

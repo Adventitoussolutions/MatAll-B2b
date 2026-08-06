@@ -1,15 +1,17 @@
 import React from 'react';
-import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, ScrollView, TouchableOpacity, Linking, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Feather, Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../context/AuthContext';
 import { Colors } from '../constants/Colors';
 import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
+import { B2B_POLICIES_URL } from '../config';
 
 export default function ViewProfileScreen() {
     const { user, logout } = useAuth();
     const navigation = useNavigation<any>();
+    const [isDeleting, setIsDeleting] = React.useState(false);
     
     // We get the base URL from the api configuration for the image URL
     const baseURL = api.defaults.baseURL || 'http://192.168.1.5:5001';
@@ -18,6 +20,43 @@ export default function ViewProfileScreen() {
     const profilePictureUrl = b2b?.profilePictureUrl 
         ? `${baseURL}${b2b.profilePictureUrl}`
         : null;
+
+    const handleDeleteAccount = () => {
+        Alert.alert(
+            'Delete Account',
+            'Are you sure you want to delete your account? This action is permanent and cannot be undone.',
+            [
+                { text: 'Cancel', style: 'cancel' },
+                {
+                    text: 'Delete',
+                    style: 'destructive',
+                    onPress: async () => {
+                        setIsDeleting(true);
+                        try {
+                            const response = await api.delete('/api/b2b/auth/profile');
+                            Alert.alert('Success', response.data?.message || 'Account deleted successfully', [
+                                {
+                                    text: 'OK',
+                                    onPress: async () => {
+                                        await logout();
+                                        navigation.reset({
+                                            index: 0,
+                                            routes: [{ name: 'Login' }],
+                                        });
+                                    }
+                                }
+                            ]);
+                        } catch (err: any) {
+                            const errorMsg = err.response?.data?.message || err.message || 'Failed to delete account';
+                            Alert.alert('Delete Failed', errorMsg);
+                        } finally {
+                            setIsDeleting(false);
+                        }
+                    }
+                }
+            ]
+        );
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -48,10 +87,18 @@ export default function ViewProfileScreen() {
                         <Ionicons name="call-outline" size={20} color={Colors.text.secondary} />
                         <Text style={styles.detailText}>{user?.phoneNumber || 'N/A'}</Text>
                     </View>
-                    <View style={[styles.detailRow, { borderBottomWidth: 0 }]}>
+                    <View style={styles.detailRow}>
                         <Ionicons name="briefcase-outline" size={20} color={Colors.text.secondary} />
                         <Text style={styles.detailText}>{user?.role || 'N/A'}</Text>
                     </View>
+                    <TouchableOpacity 
+                        style={[styles.detailRow, { borderBottomWidth: 0 }]}
+                        onPress={() => Linking.openURL(B2B_POLICIES_URL)}
+                    >
+                        <Ionicons name="shield-checkmark-outline" size={20} color={Colors.text.secondary} />
+                        <Text style={styles.detailText}>Terms of Service & Privacy Policy</Text>
+                        <Ionicons name="chevron-forward" size={18} color={Colors.text.muted} style={{ marginLeft: 'auto' }} />
+                    </TouchableOpacity>
                 </View>
 
                 {/* Logout Button */}
@@ -67,6 +114,22 @@ export default function ViewProfileScreen() {
                 >
                     <Feather name="log-out" size={20} color="#EF4444" />
                     <Text style={styles.logoutText}>Log Out</Text>
+                </TouchableOpacity>
+
+                {/* Delete Account Button */}
+                <TouchableOpacity 
+                    style={[styles.deleteButton, { marginTop: 12 }]} 
+                    onPress={handleDeleteAccount}
+                    disabled={isDeleting}
+                >
+                    {isDeleting ? (
+                        <ActivityIndicator size="small" color="#EF4444" />
+                    ) : (
+                        <>
+                            <Feather name="trash-2" size={20} color="#EF4444" />
+                            <Text style={styles.deleteText}>Delete Account</Text>
+                        </>
+                    )}
                 </TouchableOpacity>
             </ScrollView>
         </SafeAreaView>
@@ -167,6 +230,22 @@ const styles = StyleSheet.create({
     },
     logoutText: {
         color: '#EF4444', // Red text
+        fontSize: 16,
+        fontWeight: 'bold',
+        marginLeft: 8,
+    },
+    deleteButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#FEF2F2', // Extremely light red background
+        paddingVertical: 16,
+        borderRadius: 16,
+        borderWidth: 1,
+        borderColor: '#FCA5A5',
+    },
+    deleteText: {
+        color: '#EF4444',
         fontSize: 16,
         fontWeight: 'bold',
         marginLeft: 8,

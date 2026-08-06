@@ -7,7 +7,8 @@ import {
   StatusBar,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -15,6 +16,7 @@ import api from '../services/api';
 import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
+import { B2B_POLICIES_URL } from '../config';
 
 export default function OtpScreen({ route }: any) {
   const navigation: any = useNavigation();
@@ -45,6 +47,10 @@ export default function OtpScreen({ route }: any) {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleOpenPolicy = () => {
+    Linking.openURL(B2B_POLICIES_URL);
   };
 
   const handleVerify = async (fullOtp: string) => {
@@ -121,7 +127,7 @@ export default function OtpScreen({ route }: any) {
       <View style={styles.content}>
         <View style={styles.logoSection}>
           <Image
-            source={require('@/assets/images/icon.png')}
+            source={require('@/assets/images/logo.jpeg')}
             style={styles.logo}
             resizeMode="contain"
           />
@@ -179,7 +185,10 @@ export default function OtpScreen({ route }: any) {
           <Text style={styles.footerText}>
             By continuing, you are agreeing to app's
           </Text>
-          <Text style={styles.footerLinks}>
+          <Text
+            style={styles.footerLinks}
+            onPress={handleOpenPolicy}
+          >
             Terms of Service & Privacy Policy
           </Text>
         </View>

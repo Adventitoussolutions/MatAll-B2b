@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import api from '../services/api';
 import { Alert } from 'react-native';
+import { B2B_POLICIES_URL } from '../config';
 
 export default function LoginScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -35,8 +36,9 @@ export default function LoginScreen() {
   };
 
   const handleOpenPolicy = () => {
-    Linking.openURL('https://policies.matall.app/MatAll_Policies.pdf');
+    Linking.openURL(B2B_POLICIES_URL);
   };
+
 
   return (
     <SafeAreaView style={styles.container}>

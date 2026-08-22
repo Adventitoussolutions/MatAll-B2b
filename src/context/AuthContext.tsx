@@ -3,6 +3,34 @@ import { createContext, useContext, useEffect, useState } from "react";
 // import { API_URL } from '../config'; // Assuming there is an API_URL config, if not use a generic one
 import api from '../services/api';
 
+export interface Jobsite {
+  _id?: string;
+  name?: string;
+  addressText?: string;
+  location?: {
+    type: 'Point';
+    coordinates: [number, number]; // [longitude, latitude]
+  };
+  pincode?: string;
+  city?: string;
+  contactPhone?: string;
+  recipientName?: string;
+  fullAddress?: string;
+  address?: string;
+  addressType?: string;
+  houseNumber?: string;
+  landmark?: string;
+  apartmentName?: string;
+  floor?: string;
+  tower?: string;
+  contactNumber?: string;
+  type?: string;
+  coordinates?: {
+    latitude: number;
+    longitude: number;
+  };
+}
+
 export interface UserProfile {
     _id: string;
     fullName: string;
@@ -21,6 +49,8 @@ export interface UserProfile {
     [key: string]: any;
 }
 
+export type User = UserProfile;
+
 interface AuthContextType {
     user: UserProfile | null;
     isLoading: boolean;
@@ -29,6 +59,8 @@ interface AuthContextType {
     logout: () => Promise<void>;
     setUser: (user: UserProfile | null) => void;
     setToken: (token: string | null) => void;
+    updateUser: (user: UserProfile | null) => void;
+    refreshProfile: (currentToken?: string) => Promise<void>;
 }
 
 //createContext creates an object containing provider and consumer.
@@ -89,7 +121,7 @@ export const AuthProvider = ({ children }: any) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, isLoading, token, fetchProfile, logout, setUser, setToken }}>
+        <AuthContext.Provider value={{ user, isLoading, token, fetchProfile, logout, setUser, setToken, updateUser: setUser, refreshProfile: fetchProfile }}>
             {children}
         </AuthContext.Provider>
     );

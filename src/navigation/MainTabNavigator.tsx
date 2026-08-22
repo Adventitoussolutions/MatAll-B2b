@@ -1,17 +1,34 @@
 import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
 import HomeScreen from '../screens/HomeScreen';
 import OrdersScreen from '../screens/OrdersScreen';
-import PartnerScreen from '../screens/PartnerScreen';
+import OrderDetailsScreen from '../screens/OrderDetailsScreen';
+import ShopScreen from '../screens/ShopScreen';
+import CartScreen from '../screens/CartScreen';
 import ViewProfileScreen from '../screens/ViewProfileScreen';
 
+import { useCart } from '../context/CartContext';
+
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+function OrdersStack() {
+    return (
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen name="OrdersMain" component={OrdersScreen} />
+            <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+        </Stack.Navigator>
+    );
+}
 
 export default function MainTabNavigator() {
     const insets = useSafeAreaInsets();
+    const { cart } = useCart();
+    const cartItemCount = cart.reduce((total, item) => total + (item.quantity || 1), 0);
 
     return (
         <Tab.Navigator
@@ -33,8 +50,10 @@ export default function MainTabNavigator() {
                         iconName = focused ? 'home' : 'home-outline';
                     } else if (route.name === 'Orders') {
                         iconName = focused ? 'reader' : 'reader-outline';
-                    } else if (route.name === 'Partner') {
-                        iconName = focused ? 'briefcase' : 'briefcase-outline';
+                    } else if (route.name === 'Shop') {
+                        iconName = focused ? 'storefront' : 'storefront-outline';
+                    } else if (route.name === 'Cart') {
+                        iconName = focused ? 'cart' : 'cart-outline';
                     } else if (route.name === 'Profile') {
                         iconName = focused ? 'person' : 'person-outline';
                     }
@@ -50,13 +69,30 @@ export default function MainTabNavigator() {
             />
             <Tab.Screen 
                 name="Orders" 
-                component={OrdersScreen} 
+                component={OrdersStack} 
                 options={{ tabBarLabel: 'Orders' }} 
             />
             <Tab.Screen 
-                name="Partner" 
-                component={PartnerScreen} 
-                options={{ tabBarLabel: 'Partner' }} 
+                name="Shop" 
+                component={ShopScreen} 
+                options={{ tabBarLabel: 'Shop' }} 
+                listeners={({ navigation }) => ({
+                    tabPress: (e) => {
+                        e.preventDefault();
+                        navigation.navigate('Shop', {
+                            screen: 'ShopPage'
+                        });
+                    },
+                })}
+            />
+            <Tab.Screen 
+                name="Cart" 
+                component={CartScreen} 
+                options={{ 
+                    tabBarLabel: 'Cart',
+                    tabBarBadge: cartItemCount > 0 ? cartItemCount : undefined,
+                    tabBarBadgeStyle: { backgroundColor: '#ef4444', fontSize: 10 }
+                }} 
             />
             <Tab.Screen 
                 name="Profile" 

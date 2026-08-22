@@ -81,6 +81,38 @@ export default function ViewProfileScreen() {
                     <Text style={styles.tradeText}>{b2b?.trade || 'No Trade Selected'}</Text>
                 </View>
 
+                {/* Stats Row */}
+                {user?.isAffiliate && (
+                    <View style={styles.statsRow}>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statLabel}>Orders Referred</Text>
+                            <Text style={styles.statValue}>{user?.totalSuccessfulOrders || 0}</Text>
+                        </View>
+                        <View style={styles.statCard}>
+                            <Text style={styles.statLabel}>Wallet balance</Text>
+                            <Text style={styles.statValue}>₹{Number(user?.walletBalance || 0).toFixed(2)}</Text>
+                        </View>
+                    </View>
+                )}
+
+                {/* Community Partner Banner */}
+                <View style={styles.partnerBanner}>
+                    <Text style={styles.bannerTitle}>
+                        {user?.isAffiliate ? 'Community Dashboard' : 'Become a community partner'}
+                    </Text>
+                    <Text style={styles.bannerSubtitle}>
+                        {user?.isAffiliate ? 'Manage your referrals and wallet' : 'Earn 1% on every referral, for life'}
+                    </Text>
+                    <TouchableOpacity
+                        style={styles.bannerButton}
+                        onPress={() => navigation.navigate(user?.isAffiliate ? 'AffiliateWallet' : 'AffiliateOnboarding')}
+                    >
+                        <Text style={styles.bannerButtonText}>
+                            {user?.isAffiliate ? 'View Dashboard →' : 'Get started →'}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
                 {/* Additional details */}
                 <View style={styles.detailsContainer}>
                     <View style={styles.detailRow}>
@@ -194,6 +226,64 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#EAB308', // fallback since primary is bright yellow, gold looks better here
         fontWeight: '600',
+    },
+    statsRow: {
+        flexDirection: 'row',
+        marginBottom: 20,
+        gap: 12,
+    },
+    statCard: {
+        flex: 1,
+        backgroundColor: '#F9FAFB',
+        padding: 16,
+        borderRadius: 12,
+    },
+    statLabel: {
+        color: '#9CA3AF',
+        fontSize: 12,
+        marginBottom: 8,
+    },
+    statValue: {
+        color: '#1F2937',
+        fontSize: 24,
+        fontWeight: '400',
+    },
+    partnerBanner: {
+        marginBottom: 20,
+        backgroundColor: Colors.white,
+        borderRadius: 16,
+        padding: 24,
+        borderWidth: 1,
+        borderColor: Colors.border.light,
+        shadowColor: Colors.black,
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.05,
+        shadowRadius: 8,
+        elevation: 2,
+    },
+    bannerTitle: {
+        color: Colors.text.primary,
+        fontSize: 18,
+        fontWeight: '700',
+        marginBottom: 6,
+    },
+    bannerSubtitle: {
+        color: Colors.text.secondary,
+        fontSize: 14,
+        marginBottom: 20,
+        lineHeight: 20,
+    },
+    bannerButton: {
+        backgroundColor: Colors.primary,
+        alignSelf: 'flex-start',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 10,
+    },
+    bannerButtonText: {
+        color: Colors.black,
+        fontWeight: '600',
+        fontSize: 15,
     },
     detailsContainer: {
         backgroundColor: Colors.white,

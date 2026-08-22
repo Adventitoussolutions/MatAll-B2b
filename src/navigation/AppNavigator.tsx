@@ -8,6 +8,7 @@ import AffiliateOnboardingScreen from '../screens/AffiliateOnboardingScreen';
 import LocationSelectionScreen from '../screens/LocationSelectionScreen';
 import AffiliateWalletScreen from '../screens/AffiliateWalletScreen';
 import CompleteProfileScreen from '../screens/ProfileScreen';
+import CheckoutScreen from '../screens/CheckoutScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -22,6 +23,7 @@ export default function AppNavigator() {
       <Stack.Screen name="LocationSelection" component={LocationSelectionScreen} />
       <Stack.Screen name="AffiliateWallet" component={AffiliateWalletScreen} />
       <Stack.Screen name="CompleteProfile" component={CompleteProfileScreen} />
+      <Stack.Screen name="Checkout" component={CheckoutScreen} />
     </Stack.Navigator>
   );
 }

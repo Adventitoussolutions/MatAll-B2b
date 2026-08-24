@@ -334,7 +334,7 @@ export default function OrderDetailsScreen({ navigation, route }: any) {
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>{t('orderDetails')}</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('MainTab', { screen: 'HOME' })} style={styles.iconBtn}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.iconBtn}>
           <Ionicons name="home-outline" size={24} color="#000" />
         </TouchableOpacity>
       </View>

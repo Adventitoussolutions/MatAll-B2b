@@ -177,8 +177,7 @@ export default function CartScreen({ navigation }: { navigation: any }) {
             >
                 <View style={styles.header}>
                     <TouchableOpacity onPress={() => {
-                        const rootNav = navigation.getParent() || navigation;
-                        rootNav.navigate('Main', { tab: 'Shop' });
+                        navigation.navigate('Shop');
                     }}>
                         <Ionicons name="arrow-back" size={24} color={Colors.black} />
                     </TouchableOpacity>
@@ -220,8 +219,7 @@ export default function CartScreen({ navigation }: { navigation: any }) {
                             <TouchableOpacity
                                 style={styles.browseBtn}
                                 onPress={() => {
-                                    const rootNav = navigation.getParent() || navigation;
-                                    rootNav.navigate('Main', { tab: 'Shop' });
+                                    navigation.navigate('Shop');
                                 }}
                             >
                                 <Text style={styles.browseBtnText}>Browse Materials</Text>

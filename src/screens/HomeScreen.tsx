@@ -38,7 +38,7 @@ import { safeParsePrice } from '../utils/priceUtils';
 import { findMatchingJobsite } from '../utils/locationUtils';
 
 const useSpeechRecognitionEvent = (...args: any[]) => {};
-const ExpoSpeechRecognitionModule = { requestPermissionsAsync: async () => ({ status: 'granted', granted: true }), startAsync: async () => {}, start: async () => {}, stop: (...args: any[]) => {} };
+const ExpoSpeechRecognitionModule = { requestPermissionsAsync: async () => ({ status: 'granted', granted: true }), startAsync: async () => {}, start: async (...args: any[]) => {}, stop: (...args: any[]) => {} };
 const isLoggingOut = false;
 const toastConfig = {};
 const useTranslation = () => ({ t: (str: string) => str, i18n: { language: 'en', changeLanguage: (...args: any[]) => {} } });
@@ -99,7 +99,7 @@ const AutoScrollBrands = ({ brands }: { brands: Brand[] }) => {
   if (!brands || brands.length === 0) return null;
 
   const handlePress = (brand: Brand) => {
-    navigation.navigate('SHOP', {
+    navigation.navigate('Shop', {
       screen: 'ShopPage',
       params: {
         brandId: brand._id,
@@ -224,7 +224,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
       // Small delay before API navigation to let the user see the Searching toast
       setTimeout(() => {
         setIsProcessing(false);
-        navigation.navigate('SHOP', {
+        navigation.navigate('Shop', {
           screen: 'ShopPage',
           params: { search: finalTranscript.trim() }
         });
@@ -359,19 +359,19 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [catRes, brandRes, offerRes, packageRes] = await Promise.all([
+      const [catRes, brandRes] = await Promise.all([
         api.get('/api/products/categories'),
         api.get('/api/products/brands'),
-        api.get('/api/products/offers'),
-        api.get('/api/packages').catch(err => {
-          if (__DEV__) console.log('Error fetching packages', err);
-          return { data: { success: true, data: [] } };
-        })
+        // api.get('/api/products/offers'),
+        // api.get('/api/packages').catch(err => {
+        //   if (__DEV__) console.log('Error fetching packages', err);
+        //   return { data: { success: true, data: [] } };
+        // })
       ]);
       setCategories(catRes.data);
       setBrands(brandRes.data);
-      setOffers(offerRes.data);
-      setPackages(packageRes.data?.success ? packageRes.data.data : []);
+      // setOffers(offerRes.data);
+      // setPackages(packageRes.data?.success ? packageRes.data.data : []);
       refreshSettings();
 
       // Fetch active loyalty claim only if user is logged in and not logging out
@@ -577,7 +577,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const onSearchSubmit = () => {
     if (searchQuery.trim()) {
       setShowSuggestions(false);
-      navigation.navigate('SHOP', {
+      navigation.navigate('Shop', {
         screen: 'ShopPage',
         params: { search: searchQuery.trim() }
       });
@@ -665,7 +665,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
       const hasActive = activeChallenge && String(activeChallenge.offerId?._id || activeChallenge.offerId) === String(offer._id);
       if (hasActive) {
         // If already active, just go to shop
-        navigation.navigate('SHOP', { screen: 'ShopPage' });
+        navigation.navigate('Shop', { screen: 'ShopPage' });
         return;
       }
       setSelectedLoyaltyOffer(offer);
@@ -674,7 +674,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     }
 
     const params = getOfferParams(offer);
-    navigation.navigate('SHOP', {
+    navigation.navigate('Shop', {
       screen: 'ShopPage',
       params
     });
@@ -1037,7 +1037,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               style={styles.profileIcon}
               onPress={() => {
                 if (user) {
-                  navigation.navigate('PROFILE');
+                  navigation.navigate('Profile');
                 } else {
                   Toast.show({
                     type: 'info',
@@ -1119,7 +1119,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                     onPress={() => {
                       setShowSuggestions(false);
                       setSearchQuery('');
-                      navigation.navigate('Details', { productId: item._id });
+                      navigation.navigate('Shop', { screen: 'Details', params: { productId: item._id } });
                     }}
                   >
                     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
@@ -1141,14 +1141,14 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
             style={styles.heartBtn}
             onPress={() => {
               if (user) {
-                navigation.navigate('Favorites');
+                navigation.navigate('Shop', { screen: 'Favorites' });
               } else {
                 Toast.show({
                   type: 'info',
                   text1: t('toastLoginRequired'),
                   text2: t('toastLoginRequiredMsg'),
                 });
-                navigation.navigate('Login', { returnTo: 'Favorites' });
+                navigation.navigate('Login');
               }
             }}
           >
@@ -1169,7 +1169,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                   <TouchableOpacity
                     key={item._id}
                     style={styles.categoryCard}
-                    onPress={() => navigation.navigate('SHOP', {
+                    onPress={() => navigation.navigate('Shop', {
                       screen: 'ShopPage',
                       params: {
                         categoryId: item._id,
@@ -1193,7 +1193,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               </View>
             </View>
  
-            {packages.length > 0 && (
+            {/*packages.length > 0*/ false && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('rentalPackagePlans')}</Text>
                 <ScrollView
@@ -1273,7 +1273,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               </View>
             )}
 
-            {offers.length > 0 && (
+            {/*offers.length > 0*/ false && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('offers')}</Text>
                 {offers.map((offer) => {
@@ -1334,7 +1334,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
                               </View>
                               <TouchableOpacity
                                 style={styles.activeShopBtn}
-                                onPress={() => navigation.navigate('SHOP', { screen: 'ShopPage' })}
+                                onPress={() => navigation.navigate('Shop', { screen: 'ShopPage' })}
                               >
                                 <Text style={styles.activeShopBtnText}>{t('shopNow')}</Text>
                                 <Ionicons name="chevron-forward" size={12} color={Colors.black} />

@@ -102,7 +102,7 @@ export default function FavoritesScreen({ navigation }: any) {
           <Text style={styles.emptyText}>No saved items yet.</Text>
           <TouchableOpacity
             style={styles.browseBtn}
-            onPress={() => navigation.navigate('SHOP', { screen: 'ShopPage' })}
+            onPress={() => navigation.navigate('Shop', { screen: 'ShopPage' })}
           >
             <Text style={styles.browseBtnText}>Browse Materials</Text>
           </TouchableOpacity>

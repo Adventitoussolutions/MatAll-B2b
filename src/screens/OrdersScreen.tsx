@@ -143,8 +143,8 @@ export default function OrdersScreen({ navigation }: any) {
           <Text style={styles.headerTitle}>{t('Order History')}</Text>
           <Text style={styles.headerSubtitle}>{t('TRACK & MANAGE')}</Text>
         </View>
-        <TouchableOpacity onPress={() => navigation.navigate('MainTab', { screen: 'HOME' })} style={styles.iconBtn}>
-          <Ionicons name="home-outline" size={24} color="#000" />
+        <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.iconBtn}>
+          <Ionicons name="home-outline" size={22} color="#0F172A" />
         </TouchableOpacity>
       </View>
 
@@ -164,7 +164,7 @@ export default function OrdersScreen({ navigation }: any) {
             <Ionicons name="receipt-outline" size={64} color="#CBD5E1" />
             <Text style={{ fontSize: 18, fontWeight: '800', color: '#64748B', marginTop: 16 }}>{t('noOrdersYet')}</Text>
             <TouchableOpacity
-              onPress={() => navigation.navigate('SHOP')}
+              onPress={() => navigation.navigate('Shop')}
               style={{ marginTop: 20, backgroundColor: '#FFE100', paddingHorizontal: 24, paddingVertical: 12, borderRadius: 10 }}
             >
               <Text style={{ fontWeight: '900' }}>Start Shopping</Text>

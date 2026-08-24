@@ -250,13 +250,13 @@ export default function ShopPageScreen({ navigation, route }: any) {
           if (navigation.canGoBack()) {
             navigation.goBack();
           } else {
-            navigation.navigate('ShopHome');
+            navigation.navigate('Home');
           }
         }} style={styles.headerBtn}>
           <Ionicons name="arrow-back" size={24} color={Colors.black} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Buy Products Online</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('ShopHome')} style={styles.headerBtn}>
+        <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.headerBtn}>
           <Ionicons name="home-outline" size={24} color={Colors.black} />
         </TouchableOpacity>
       </View>

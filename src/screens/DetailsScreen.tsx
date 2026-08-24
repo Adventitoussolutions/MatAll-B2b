@@ -321,7 +321,7 @@ export default function DetailsScreen({ route, navigation }: { route: any; navig
             <Text style={styles.headerTitle} numberOfLines={1}>{product.brand} {product.productName || product.name}</Text>
             <Text style={styles.headerSubtitle}>PRODUCT DETAILS</Text>
           </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Main')}>
+          <TouchableOpacity onPress={() => navigation.navigate('Home')}>
             <Ionicons name="home-outline" size={24} color={Colors.black} />
           </TouchableOpacity>
         </View>

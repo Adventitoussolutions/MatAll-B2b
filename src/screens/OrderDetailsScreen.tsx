@@ -413,7 +413,7 @@ export default function OrderDetailsScreen({ navigation, route }: any) {
               <View key={idx} style={styles.itemRowWrapper}>
                 <TouchableOpacity
                   style={styles.productRow}
-                  onPress={() => navigation.navigate('Details', { productId: pId })}
+                  onPress={() => navigation.navigate('Shop', { screen: 'Details', params: { productId: pId } })}
                 >
                   <View style={styles.itemThumbBox}>
                     <Image

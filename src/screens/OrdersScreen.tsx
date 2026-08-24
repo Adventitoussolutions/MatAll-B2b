@@ -235,7 +235,7 @@ export default function OrdersScreen({ navigation }: any) {
                           onPress={() => {
                             const prodId = item.productId?._id || item.productId || item.product?._id;
                             if (prodId) {
-                              navigation.navigate('Details', { productId: prodId });
+                              navigation.navigate('Shop', { screen: 'Details', params: { productId: prodId } });
                             }
                           }}
                         >
@@ -262,7 +262,7 @@ export default function OrdersScreen({ navigation }: any) {
                         const firstItem = order.items[0];
                         const prodId = firstItem?.productId?._id || firstItem?.productId || firstItem?.product?._id;
                         if (prodId) {
-                          navigation.navigate('Details', { productId: prodId });
+                          navigation.navigate('Shop', { screen: 'Details', params: { productId: prodId } });
                         }
                       } else {
                         navigation.navigate('OrderDetails', { id: order._id });

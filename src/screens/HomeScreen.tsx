@@ -359,19 +359,19 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [catRes, brandRes] = await Promise.all([
+      const [catRes, brandRes, offerRes, packageRes] = await Promise.all([
         api.get('/api/products/categories'),
         api.get('/api/products/brands'),
-        // api.get('/api/products/offers'),
-        // api.get('/api/packages').catch(err => {
-        //   if (__DEV__) console.log('Error fetching packages', err);
-        //   return { data: { success: true, data: [] } };
-        // })
+        api.get('/api/products/offers'),
+        api.get('/api/packages').catch(err => {
+          if (__DEV__) console.log('Error fetching packages', err);
+          return { data: { success: true, data: [] } };
+        })
       ]);
       setCategories(catRes.data);
       setBrands(brandRes.data);
-      // setOffers(offerRes.data);
-      // setPackages(packageRes.data?.success ? packageRes.data.data : []);
+      setOffers(offerRes.data);
+      setPackages(packageRes.data?.success ? packageRes.data.data : []);
       refreshSettings();
 
       // Fetch active loyalty claim only if user is logged in and not logging out
@@ -1020,18 +1020,20 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               </TouchableOpacity>
             )}
 
-            <TouchableOpacity
-              style={styles.profileIcon}
-              onPress={() => {
-                const newLang = i18n.language === 'en' ? 'hi' : 'en';
-                i18n.changeLanguage(newLang);
-                AsyncStorage.setItem(LANGUAGE_KEY, newLang);
-              }}
-            >
-              <Text style={{ fontWeight: 'bold', fontSize: 14, color: Colors.black }}>
-                {i18n.language === 'en' ? 'A/अ' : 'A/अ'}
-              </Text>
-            </TouchableOpacity>
+            {false && (
+              <TouchableOpacity
+                style={styles.profileIcon}
+                onPress={() => {
+                  const newLang = i18n.language === 'en' ? 'hi' : 'en';
+                  i18n.changeLanguage(newLang);
+                  AsyncStorage.setItem(LANGUAGE_KEY, newLang);
+                }}
+              >
+                <Text style={{ fontWeight: 'bold', fontSize: 14, color: Colors.black }}>
+                  {i18n.language === 'en' ? 'A/अ' : 'A/अ'}
+                </Text>
+              </TouchableOpacity>
+            )}
 
             <TouchableOpacity
               style={styles.profileIcon}
@@ -1193,7 +1195,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               </View>
             </View>
  
-            {/*packages.length > 0*/ false && (
+            {false && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('rentalPackagePlans')}</Text>
                 <ScrollView
@@ -1273,7 +1275,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
               </View>
             )}
 
-            {/*offers.length > 0*/ false && (
+            {false && (
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>{t('offers')}</Text>
                 {offers.map((offer) => {

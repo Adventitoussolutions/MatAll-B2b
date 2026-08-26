@@ -615,7 +615,7 @@ export default function DetailsScreen({ route, navigation }: { route: any; navig
           <View style={{ height: 120 }} />
         </ScrollView>
 
-        <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <View style={[styles.bottomBar, { paddingBottom: 12 }]}>
           <View style={styles.priceContainer}>
             <Text style={styles.bottomUnitLabel}>{currentUnit}</Text>
             <Text style={styles.bottomPrice}>₹{currentPrice.toFixed(2)}</Text>

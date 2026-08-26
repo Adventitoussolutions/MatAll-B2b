@@ -178,6 +178,8 @@ export default function OrderDetailsScreen({ navigation, route }: any) {
     );
   }
 
+
+
   const getStatusText = (status: string) => {
     switch (status) {
       case 'Accepted': return t('Order accepted & being processed');
@@ -194,17 +196,8 @@ export default function OrderDetailsScreen({ navigation, route }: any) {
   };
 
   const getItemStatusDisplay = (itemStatus: string, orderStatus: string) => {
-    let statusToUse = (itemStatus && itemStatus !== 'Pending') ? itemStatus : orderStatus;
+    const statusToUse = itemStatus || orderStatus || 'Pending';
     
-    const statusRank: Record<string, number> = {
-      'Pending': 0, 'Accepted': 1, 'Order Ready to Ship': 2, 'Rider at hub for pickup': 3,
-      'Order Picked': 4, 'Order on way': 5, 'dispatched': 5, 'Order Delivered': 6, 'Payment Received': 7
-    };
-    
-    if (statusRank[orderStatus] > (statusRank[itemStatus] || 0) && itemStatus !== 'Cancelled') {
-      statusToUse = orderStatus;
-    }
-
     switch (statusToUse) {
       case 'Accepted': return { text: t('Accepted'), color: '#3b82f6', bg: '#eff6ff' };
       case 'Order Ready to Ship': return { text: t('Packed'), color: '#eab308', bg: '#fefce8' };
@@ -215,7 +208,7 @@ export default function OrderDetailsScreen({ navigation, route }: any) {
       case 'Order Delivered': return { text: t('Delivered'), color: '#16a34a', bg: '#f0fdf4' };
       case 'Payment Received': return { text: t('Payment Received'), color: '#06b6d4', bg: '#ecfeff' };
       case 'Cancelled': return { text: t('Cancelled'), color: '#ef4444', bg: '#fef2f2' };
-      default: return { text: statusToUse || t('Processing'), color: '#64748b', bg: '#f8fafc' };
+      default: return { text: t(statusToUse), color: '#64748b', bg: '#f8fafc' };
     }
   };
 
@@ -253,14 +246,7 @@ export default function OrderDetailsScreen({ navigation, route }: any) {
   };
 
   const renderItemProgressBar = (item: any) => {
-    const rawStatus = (item.status && item.status !== 'Pending') ? item.status : order.status;
-    const statusRank: Record<string, number> = {
-      'Pending': 0, 'Accepted': 1, 'Order Ready to Ship': 2, 'Rider at hub for pickup': 3,
-      'Order Picked': 4, 'Order on way': 5, 'dispatched': 5, 'Order Delivered': 6, 'Payment Received': 7
-    };
-    const itemRank = statusRank[item.status] || 0;
-    const orderRank = statusRank[order.status] || 0;
-    const effectiveStatus = (orderRank > itemRank && item.status !== 'Cancelled') ? order.status : rawStatus;
+    const effectiveStatus = item.status || order.status || 'Pending';
     const isCancelled = effectiveStatus === 'Cancelled';
     const activeIndex = isCancelled ? -1 : Math.max(0, getStageIndex(effectiveStatus));
 
@@ -333,7 +319,7 @@ export default function OrderDetailsScreen({ navigation, route }: any) {
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.iconBtn}>
           <Ionicons name="arrow-back" size={24} color="#000" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>{t('orderDetails')}</Text>
+        <Text style={styles.headerTitle}>Order Details</Text>
         <TouchableOpacity onPress={() => navigation.navigate('Home')} style={styles.iconBtn}>
           <Ionicons name="home-outline" size={24} color="#000" />
         </TouchableOpacity>
@@ -344,7 +330,11 @@ export default function OrderDetailsScreen({ navigation, route }: any) {
           <View style={styles.statusIconBox}>
             <MaterialCommunityIcons name="package-variant-closed" size={32} color="#22C55E" />
           </View>
-          <Text style={styles.statusTitle}>{getStatusText(order.status)}</Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', marginTop: 12 }}>
+            <Text style={[styles.statusTitle, { fontSize: 16, marginHorizontal: 4, textAlign: 'center' }]}>
+              {t((order.status || 'PENDING').toUpperCase())}
+            </Text>
+          </View>
           <Text style={styles.orderIdText}>{t('Order ID:')} #{order._id.toUpperCase()}</Text>
           {order.isRentalPackage && (
             <View style={{ backgroundColor: '#FEF08A', paddingHorizontal: 12, paddingVertical: 4, borderRadius: 12, marginTop: 10 }}>

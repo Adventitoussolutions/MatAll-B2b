@@ -167,10 +167,6 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
   const [selectedLoyaltyOffer, setSelectedLoyaltyOffer] = useState<LoyaltyOffer | null>(null);
   const [activeChallenge, setActiveChallenge] = useState<LoyaltyClaim | null>(null);
 
-  const [showReferralPopup, setShowReferralPopup] = useState(false);
-  const [referralCodeInput, setReferralCodeInput] = useState('');
-  const [hasReferralChoice, setHasReferralChoice] = useState<boolean | null>(null);
-  const [isApplyingReferral, setIsApplyingReferral] = useState(false);
 
   const getNumberWord = (num: number) => {
     const words = ["zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine", "ten"];
@@ -429,19 +425,6 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     }
   }, [user?._id, user?.jobsites?.length, isLoggingOut, deliveryAddress === null]);
 
-  useEffect(() => {
-    const checkReferralPopup = async () => {
-      if (!user || !user._id) return;
-      const dismissed = await AsyncStorage.getItem(`referral_popup_dismissed_${user._id}`);
-      const u = user as any;
-      if (!u.referredBy && dismissed !== 'true' && !u.referralPopupDismissed) {
-        setShowReferralPopup(true);
-      }
-    };
-    if (!isLoggingOut) {
-      checkReferralPopup();
-    }
-  }, [user?._id, isLoggingOut, user?.referredBy, (user as any)?.referralPopupDismissed]);
 
   useEffect(() => {
     let locationSubscription: Location.LocationSubscription | null = null;
@@ -505,54 +488,6 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
     };
   }, [isLoggingOut, user?.jobsites, isManualSelection]);
 
-  const handleSubmitReferral = async () => {
-    if (!referralCodeInput.trim()) return;
-    setIsApplyingReferral(true);
-    try {
-      const { data } = await api.post('/api/auth/apply-referral', {
-        referralCode: referralCodeInput.toUpperCase()
-      });
-      Toast.show({
-        type: 'success',
-        text1: 'Referral Applied',
-        text2: data.message || 'Referral code applied successfully!'
-      });
-      if (user?._id) {
-        await AsyncStorage.setItem(`referral_popup_dismissed_${user._id}`, 'true');
-        const updatedUser = {
-          ...user,
-          referredBy: data.referredBy,
-          referralPopupDismissed: true
-        };
-        await updateUser(updatedUser);
-      }
-      setShowReferralPopup(false);
-      setReferralCodeInput('');
-      setHasReferralChoice(null);
-    } catch (err: any) {
-      Alert.alert('Apply Failed', err.response?.data?.message || 'Failed to apply referral code.');
-    } finally {
-      setIsApplyingReferral(false);
-    }
-  };
-
-  const handleCloseReferralPopup = async () => {
-    if (user?._id) {
-      await AsyncStorage.setItem(`referral_popup_dismissed_${user._id}`, 'true');
-      const updatedUser = {
-        ...user,
-        referralPopupDismissed: true
-      };
-      await updateUser(updatedUser);
-      try {
-        await api.post('/api/affiliate/dismiss-referral');
-      } catch (err) {
-        if (__DEV__) console.log('Error saving referral dismissal:', err);
-      }
-    }
-    setShowReferralPopup(false);
-    setHasReferralChoice(null);
-  };
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -700,155 +635,6 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Referral Code First-time Login Popup */}
-      <Modal
-        visible={showReferralPopup}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={handleCloseReferralPopup}
-      >
-        <View style={{
-          flex: 1,
-          backgroundColor: 'rgba(15, 23, 42, 0.75)',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: 20
-        }}>
-          <View style={{
-            backgroundColor: Colors.white,
-            borderRadius: 24,
-            padding: 30,
-            width: '100%',
-            maxWidth: 400,
-            shadowColor: Colors.black,
-            shadowOffset: { width: 0, height: 10 },
-            shadowOpacity: 0.1,
-            shadowRadius: 20,
-            elevation: 10,
-            alignItems: 'center',
-            borderWidth: 1,
-            borderColor: Colors.border.light
-          }}>
-            <View style={{
-              width: 64,
-              height: 64,
-              borderRadius: 20,
-              backgroundColor: '#FEF9C3',
-              justifyContent: 'center',
-              alignItems: 'center',
-              marginBottom: 20
-            }}>
-              <Text style={{ fontSize: 28 }}>🎁</Text>
-            </View>
-
-            {hasReferralChoice === null ? (
-              <View style={{ width: '100%', alignItems: 'center' }}>
-                <Text style={{ fontSize: 20, fontWeight: '900', color: '#0F172A', marginBottom: 10, textAlign: 'center' }}>
-                  Welcome to MatAll!
-                </Text>
-                <Text style={{ fontSize: 14, color: '#64748B', lineHeight: 20, marginBottom: 24, textAlign: 'center' }}>
-                  Do you have any referral code? Enter it to get {referredCountWord} deliveries free on your first {referredCountWord} {weightCategory} category orders &gt;= {minOrderValue}.
-                </Text>
-                <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                  <TouchableOpacity
-                    onPress={() => setHasReferralChoice(true)}
-                    style={{
-                      flex: 1,
-                      backgroundColor: Colors.primary,
-                      borderRadius: 12,
-                      paddingVertical: 12,
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Text style={{ fontSize: 14, fontWeight: '900', color: Colors.black }}>Yes, I have one</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={handleCloseReferralPopup}
-                    style={{
-                      flex: 1,
-                      backgroundColor: Colors.border.light,
-                      borderRadius: 12,
-                      paddingVertical: 12,
-                      alignItems: 'center'
-                    }}
-                  >
-                    <Text style={{ fontSize: 14, fontWeight: '900', color: Colors.text.secondary }}>No</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ) : (
-              <View style={{ width: '100%', alignItems: 'center' }}>
-                <Text style={{ fontSize: 20, fontWeight: '900', color: '#0F172A', marginBottom: 10, textAlign: 'center' }}>
-                  Enter Referral Code or Mobile Number
-                </Text>
-                <Text style={{ fontSize: 14, color: '#64748B', lineHeight: 20, marginBottom: 20, textAlign: 'center' }}>
-                  Enter the code or mobile number below to link your account.
-                </Text>
-                <TextInput
-                  style={{
-                    width: '100%',
-                    height: 50,
-                    borderWidth: 1.5,
-                    borderColor: Colors.border.medium,
-                    borderRadius: 12,
-                    paddingHorizontal: 16,
-                    fontSize: 16,
-                    color: Colors.black,
-                    fontWeight: '700',
-                    textAlign: 'center',
-                    textTransform: 'uppercase',
-                    marginBottom: 16,
-                    backgroundColor: Colors.background.secondary,
-                    letterSpacing: 1
-                  }}
-                  placeholder="e.g. MA0001 or 9876543210"
-                  placeholderTextColor={Colors.text.muted}
-                  value={referralCodeInput}
-                  onChangeText={(v) => setReferralCodeInput(v.toUpperCase())}
-                  autoCapitalize="characters"
-                  maxLength={10}
-                  autoFocus
-                />
-                <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
-                  <TouchableOpacity
-                    onPress={handleSubmitReferral}
-                    disabled={isApplyingReferral}
-                    style={{
-                      flex: 1,
-                      backgroundColor: Colors.primary,
-                      borderRadius: 12,
-                      paddingVertical: 12,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: 46
-                    }}
-                  >
-                    {isApplyingReferral ? (
-                      <ActivityIndicator size="small" color={Colors.black} />
-                    ) : (
-                      <Text style={{ fontSize: 14, fontWeight: '900', color: Colors.black }}>Apply Code</Text>
-                    )}
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => setHasReferralChoice(null)}
-                    style={{
-                      backgroundColor: Colors.border.light,
-                      borderRadius: 12,
-                      paddingVertical: 12,
-                      paddingHorizontal: 18,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      height: 46
-                    }}
-                  >
-                    <Text style={{ fontSize: 14, fontWeight: '900', color: Colors.text.secondary }}>Back</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
-            )}
-          </View>
-        </View>
-      </Modal>
 
       <Modal visible={uploading} transparent={true} animationType="fade">
         <View style={{ flex: 1, backgroundColor: Colors.ui.overlay, justifyContent: 'center', alignItems: 'center' }}>
@@ -1165,7 +951,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
         ) : (
           <>
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>{t('shopByCategory')}</Text>
+              <Text style={styles.sectionTitle}>Shop by Category</Text>
               <View style={styles.categoryGrid}>
                 {categories.map((item) => (
                   <TouchableOpacity
@@ -1270,7 +1056,7 @@ export default function HomeScreen({ navigation }: { navigation: any }) {
 
             {brands.length > 0 && (
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>{t('shopByBrand')}</Text>
+                <Text style={styles.sectionTitle}>Shop by Brand</Text>
                 <AutoScrollBrands brands={brands} />
               </View>
             )}

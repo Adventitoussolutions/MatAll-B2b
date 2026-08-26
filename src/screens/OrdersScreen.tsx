@@ -127,10 +127,12 @@ export default function OrdersScreen({ navigation }: any) {
   const getStatusStyle = (status: string) => {
     const s = (status || '').toLowerCase();
     if (s.includes('cancel')) return { bg: '#FEE2E2', text: '#991B1B' };
+    if (s.includes('escalate')) return { bg: '#FFEDD5', text: '#C2410C' };
     if (s.includes('delivered') || s.includes('accept')) return { bg: '#DCFCE7', text: '#166534' };
     if (s.includes('pending')) return { bg: '#FEF3C7', text: '#92400E' };
     return { bg: '#F3F4F6', text: '#374151' };
   };
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -172,7 +174,6 @@ export default function OrdersScreen({ navigation }: any) {
           </View>
         ) : (
           orders.map((order) => {
-            const statusStyle = getStatusStyle(order.status);
             const isCancelled = (order.status || '').toLowerCase().includes('cancel');
             const date = new Date(order.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: '2-digit' });
             const time = new Date(order.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -214,9 +215,11 @@ export default function OrdersScreen({ navigation }: any) {
                     <Ionicons name="chevron-forward" size={20} color="#64748B" />
                   </View>
 
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15 }}>
-                    <View style={[styles.statusBadge, { backgroundColor: statusStyle.bg, marginBottom: 0 }]}>
-                      <Text style={[styles.statusText, { color: statusStyle.text }]}>{t((order.status || '').toUpperCase())}</Text>
+                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 15, flexWrap: 'wrap' }}>
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusStyle(order.status).bg, marginBottom: 0 }]}>
+                      <Text style={[styles.statusText, { color: getStatusStyle(order.status).text }]}>
+                        {t((order.status || 'PENDING').toUpperCase())}
+                      </Text>
                     </View>
                     {order.isRentalPackage && (
                       <View style={{ backgroundColor: '#FEF08A', paddingHorizontal: 10, paddingVertical: 4, borderRadius: 6 }}>

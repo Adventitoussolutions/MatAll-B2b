@@ -219,15 +219,16 @@ export default function LocationModal({ visible, onClose, onSelectAddress }: Loc
 
         const newCoords = { latitude: lat, longitude: lng };
         setMarkerCoordinate(newCoords);
-        setSelectedAddressText(data.result.formatted_address);
-        setSearchTerm(data.result.formatted_address);
+        const address = data.result.formatted_address;
+        setSelectedAddressText(address);
+        setSearchTerm(address);
 
         // Extract pincode and city
         const components = data.result.address_components;
         const pin = components.find((c: any) => c.types.includes('postal_code'))?.long_name || '';
+        const cleanPin = pin.replace(/\D/g, '').slice(0, 6);
         const cityVal = components.find((c: any) => c.types.includes('locality'))?.long_name || '';
-        setPincode(pin);
-        setIsPincodeEditable(!pin);
+        setPincode(cleanPin);
         setCity(cityVal);
 
         mapRef.current?.animateToRegion({
@@ -255,11 +256,24 @@ export default function LocationModal({ visible, onClose, onSelectAddress }: Loc
         setSelectedAddressText(address);
         setSearchTerm(address);
 
-        const components = data.results[0].address_components;
-        const pin = components.find((c: any) => c.types.includes('postal_code'))?.long_name || '';
-        const cityVal = components.find((c: any) => c.types.includes('locality'))?.long_name || '';
-        setPincode(pin);
-        setIsPincodeEditable(!pin);
+        let pin = '';
+        let cityVal = '';
+
+        for (const result of data.results) {
+          const components = result.address_components;
+          if (!pin) {
+            const foundPin = components.find((c: any) => c.types.includes('postal_code'))?.long_name;
+            if (foundPin) pin = foundPin;
+          }
+          if (!cityVal) {
+            const foundCity = components.find((c: any) => c.types.includes('locality'))?.long_name;
+            if (foundCity) cityVal = foundCity;
+          }
+          if (pin && cityVal) break;
+        }
+
+        const cleanPin = pin.replace(/\D/g, '').slice(0, 6);
+        setPincode(cleanPin);
         setCity(cityVal);
 
         return await checkServiceability(lat, lng);
@@ -894,21 +908,20 @@ export default function LocationModal({ visible, onClose, onSelectAddress }: Loc
         <View style={[styles.formGroup, { flex: 1, marginRight: 10 }]}>
           <Text style={[styles.label, errors.pincode && styles.labelError]}>PIN Code *</Text>
           <TextInput 
-            style={[styles.input, !isPincodeEditable && styles.readOnlyInput, errors.pincode && styles.inputError]} 
+            style={[styles.input, errors.pincode && styles.inputError]} 
             value={pincode} 
-            editable={isPincodeEditable}
             onChangeText={(text) => {
               const cleanText = text.replace(/\D/g, '').slice(0, 6);
               setPincode(cleanText);
               if (errors.pincode) setErrors(prev => ({ ...prev, pincode: '' }));
             }}
             keyboardType="number-pad"
-            placeholder="122104" 
+            placeholder="e.g. 122104" 
           />
         </View>
         <View style={[styles.formGroup, { flex: 1 }]}>
           <Text style={styles.label}>City</Text>
-          <TextInput style={[styles.input, styles.readOnlyInput]} value={city} editable={false} placeholder="Mohali" />
+          <TextInput style={styles.input} value={city} onChangeText={setCity} placeholder="e.g. Mohali" />
         </View>
       </View>
 

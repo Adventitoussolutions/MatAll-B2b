@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import RazorpayCheckout from 'react-native-razorpay';
 import LocationModal from '../components/LocationModal';
 import OfflineBanner from '../components/OfflineBanner';
 import { Colors } from '../constants/Colors';
@@ -159,6 +160,23 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
       setSelectedAddress(deliveryAddress);
     }
   }, [deliveryAddress]);
+
+  React.useEffect(() => {
+    if (user?.jobsites && selectedAddress && (selectedAddress as any)._id) {
+      const match = user.jobsites.find((j: Jobsite) => j._id === (selectedAddress as any)._id);
+      if (match) {
+        setSelectedAddress(match);
+      } else {
+        const fallback = user.jobsites.length > 0 ? user.jobsites[0] : null;
+        setSelectedAddress(fallback);
+        if (fallback) setDeliveryAddress(fallback);
+      }
+    } else if (!selectedAddress && user?.jobsites && user.jobsites.length > 0) {
+      const fallback = user.jobsites[0];
+      setSelectedAddress(fallback);
+      setDeliveryAddress(fallback);
+    }
+  }, [user?.jobsites]);
 
   React.useEffect(() => {
     const fetchCoupons = async () => {
@@ -316,8 +334,13 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
   };
 
   const finalizeOrder = async (method: string, paymentRef: string | null, paidAmount: number) => {
-    if (!selectedAddress) {
-      Toast.show({ type: 'error', text1: 'Address Required', text2: 'No delivery address selected.' });
+    if (!selectedAddress || !(selectedAddress.addressText || selectedAddress.address) || !selectedAddress.pincode) {
+      Toast.show({ type: 'error', text1: 'Address Required', text2: 'Please add or select a delivery address to proceed.' });
+      return;
+    }
+
+    if (selectedAddress.pincode.length !== 6) {
+      Toast.show({ type: 'error', text1: 'Invalid Address', text2: 'Please ensure your delivery address has a valid 6-digit pincode.' });
       return;
     }
     try {
@@ -355,13 +378,99 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
   };
 
   const startRazorpayPayment = async (method: 'Online' | 'Split') => {
-    Toast.show({ type: 'info', text1: 'Coming Soon', text2: 'Online payments are disabled in B2B.' });
+    if (!selectedAddress || !(selectedAddress.addressText || selectedAddress.address) || !selectedAddress.pincode) {
+      Toast.show({ type: 'error', text1: 'Address Required', text2: 'Please add or select a delivery address to proceed.' });
+      return;
+    }
+
+    if (selectedAddress.pincode.length !== 6) {
+      Toast.show({ type: 'error', text1: 'Invalid Address', text2: 'Please ensure your delivery address has a valid 6-digit pincode.' });
+      return;
+    }
+
+    setLoading(true);
+
+    const payAmount = method === 'Split' ? splitPaymentAmount : totalAmount;
+    const finalPaymentMethod = method === 'Split' ? `Partial Payment (${partPaymentPercentage}%)` : 'Online Payment';
+
+    const orderData = getOrderPayload(finalPaymentMethod, null, payAmount);
+
+    try {
+      // 1. Pre-create order in backend
+      const { data: responseData } = await api.post('/api/orders/initiate', orderData);
+
+      const { razorpayOrder, order } = responseData;
+
+      const options = {
+        key: process.env.EXPO_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_mock12345',
+        amount: razorpayOrder.amount,
+        currency: razorpayOrder.currency,
+        name: 'MatAll',
+        description: method === 'Split' ? `Advance Payment (${partPaymentPercentage}%)` : 'Full Payment',
+        order_id: razorpayOrder.id,
+        prefill: {
+          name: selectedAddress.name || user?.fullName || 'Guest',
+          email: user?.email || 'customer@example.com',
+          contact: selectedAddress.contactPhone || user?.phoneNumber || ''
+        },
+        theme: {
+          color: '#000000'
+        }
+      };
+
+      RazorpayCheckout.open(options).then(async (data: any) => {
+        // Handle success
+        try {
+          const { data: verifyData } = await api.post('/api/orders/razorpay/verify', {
+            razorpay_order_id: data.razorpay_order_id,
+            razorpay_payment_id: data.razorpay_payment_id,
+            razorpay_signature: data.razorpay_signature,
+            orderId: order._id
+          });
+
+          if (verifyData.success) {
+            clearCart();
+            try {
+              await refreshProfile();
+            } catch (err) {
+              if (__DEV__) console.log('Error refreshing profile after order:', err);
+            }
+            Toast.show({ type: 'success', text1: 'Payment Verified!', text2: 'Order placed successfully.' });
+            navigateToTab('ORDERS');
+          }
+        } catch (err: any) {
+          Toast.show({ type: 'error', text1: 'Verification Failed', text2: err.response?.data?.message || 'Payment verification failed' });
+          navigateToTab('ORDERS');
+        }
+      }).catch((error: any) => {
+        // Handle failure
+        Toast.show({ type: 'error', text1: 'Payment Cancelled', text2: error.description || 'Payment was cancelled or failed' });
+        setLoading(false);
+      });
+
+    } catch (err: any) {
+      if (err.response && err.response.status === 401) {
+        Toast.show({ type: 'error', text1: 'Session expired', text2: 'Please login again.' });
+        navigation.navigate('Login');
+      } else if (err.response && err.response.status === 403) {
+        Alert.alert("Store Offline", err.response.data.message || "We're offline to make sure you experience is 10/10 tomorrow. See you at 9:00 AM!");
+      } else {
+        const errorMessage = err.response?.data?.error || err.response?.data?.message || 'Could not create payment session.';
+        Toast.show({ type: 'error', text1: 'Error', text2: errorMessage });
+      }
+      setLoading(false);
+    }
   };
 
   const handlePlaceOrder = async (method: string) => {
 
-    if (!selectedAddress || !(selectedAddress.addressText || selectedAddress.address)) {
-      Toast.show({ type: 'error', text1: 'Address Required', text2: 'Please select or add a delivery address to proceed.' });
+    if (!selectedAddress || !(selectedAddress.addressText || selectedAddress.address) || !selectedAddress.pincode) {
+      Toast.show({ type: 'error', text1: 'Address Required', text2: 'Please add or select a delivery address to proceed.' });
+      return;
+    }
+
+    if (selectedAddress.pincode.length !== 6) {
+      Toast.show({ type: 'error', text1: 'Invalid Address', text2: 'Please ensure your delivery address has a valid 6-digit pincode.' });
       return;
     }
 
@@ -466,7 +575,7 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
             </View>
           </View>
 
-          <View style={styles.infoCard}>
+          <TouchableOpacity activeOpacity={0.8} style={styles.infoCard} onPress={() => setLocationModalVisible(true)}>
             <View style={styles.infoRow}>
               <View style={styles.userIconBox}>
                 <Ionicons name="person-outline" size={20} color={Colors.black} />
@@ -476,31 +585,30 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
                 <Text style={styles.infoTitle}>{user?.fullName || 'New User'}</Text>
                 <Text style={styles.infoTitleBold}>{user?.phoneNumber || 'XXXXXXXXXX'}</Text>
               </View>
+              <Text style={styles.changeText}>Change</Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
-          <View style={styles.infoCard}>
+          <TouchableOpacity activeOpacity={0.8} style={styles.infoCard} onPress={() => setLocationModalVisible(true)}>
             <View style={styles.infoRow}>
               <View style={styles.locIconBox}>
                 <Ionicons name="location-outline" size={20} color={selectedAddress ? Colors.text.warning : Colors.status.errorDeep} />
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={styles.labelSmall}>
-                  {selectedAddress?.name ? `Delivering to ${selectedAddress.name}` : 'Delivery Address'}
+                  {selectedAddress && selectedAddress.pincode && selectedAddress.pincode.length === 6 && selectedAddress.name ? `Delivering to ${selectedAddress.name}` : 'Delivery Address'}
                 </Text>
-                <Text style={[styles.addressText, (!selectedAddress || !(selectedAddress.addressText || selectedAddress.address)) && { color: Colors.status.errorDeep }]}>
-                  {selectedAddress && (selectedAddress.addressText || selectedAddress.address)
+                <Text style={[styles.addressText, (!selectedAddress || !selectedAddress.pincode || selectedAddress.pincode.length !== 6 || !(selectedAddress.addressText || selectedAddress.address)) && { color: Colors.status.errorDeep }]}>
+                  {selectedAddress && selectedAddress.pincode && selectedAddress.pincode.length === 6 && (selectedAddress.addressText || selectedAddress.address)
                     ? (selectedAddress.addressText || selectedAddress.address)
                     : 'Please select or add a delivery address to continue.'}
                 </Text>
               </View>
-              <TouchableOpacity onPress={() => setLocationModalVisible(true)}>
-                <Text style={[styles.changeText, !selectedAddress && { color: Colors.status.info }]}>
-                  {selectedAddress ? 'Change' : 'Add New'}
-                </Text>
-              </TouchableOpacity>
+              <Text style={[styles.changeText, (!selectedAddress || !selectedAddress.pincode || selectedAddress.pincode.length !== 6) && { color: Colors.status.info }]}>
+                {selectedAddress && selectedAddress.pincode && selectedAddress.pincode.length === 6 ? 'Change' : 'Add New'}
+              </Text>
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.policyContainer}>
             <TouchableOpacity
@@ -519,7 +627,7 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
             )}
           </View>
 
-          <View style={styles.sectionHeader}>
+          {/* <View style={styles.sectionHeader}>
             <MaterialCommunityIcons name="ticket-percent-outline" size={20} color={Colors.black} style={{ marginRight: 8 }} />
             <Text style={styles.sectionHeaderText}>COUPONS & OFFERS</Text>
           </View>
@@ -587,7 +695,7 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
                 </TouchableOpacity>
               </View>
             </View>
-          )}
+          )} */}
 
           {/* ── WALLET POINTS REDEMPTION ── */}
           {user?.isAffiliate && pointsBalance > 0 && (
@@ -734,7 +842,7 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
               </View>
             )}
 
-            {loyalty && loyalty.targetAmount > 0 && (
+            {/* {loyalty && loyalty.targetAmount > 0 && (
               <>
                 <TouchableOpacity
                   style={styles.loyaltyProgressBox}
@@ -772,7 +880,7 @@ export default function CheckoutScreen({ navigation }: { navigation: any }) {
                   </View>
                 )}
               </>
-            )}
+            )} */}
 
             <View style={styles.divider} />
 
